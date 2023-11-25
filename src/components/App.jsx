@@ -4,9 +4,9 @@ import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import Loader from './Loader/Loader';
 import Modal from './Modal/Modal';
+import fetchImagesFromBackend from './api-services/api-services';
 
 const App = () => {
-  const [apiKey] = useState('39819981-fb7a960ba48529567676f3c81');
   const [perPage] = useState(12);
   const [images, setImages] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,20 +18,7 @@ const App = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(
-        `https://pixabay.com/api/?q=${searchTerm}&page=${page}&key=${apiKey}&image_type=photo&orientation=horizontal&per_page=${perPage}`
-      );
-
-      if (!response.ok) {
-        throw new Error('Error fetching images from Pixabay API');
-      }
-
-      const data = await response.json();
-      const newImages = data.hits.map(hit => ({
-        id: hit.id,
-        webformatURL: hit.webformatURL,
-        largeImageURL: hit.largeImageURL,
-      }));
+      const newImages = await fetchImagesFromBackend(searchTerm, page, perPage);
 
       setImages(prevImages => [...prevImages, ...newImages]);
     } catch (error) {
@@ -39,15 +26,13 @@ const App = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [page, searchTerm, apiKey, perPage]);
-
-  useEffect(() => {
-    fetchImages();
-  }, [fetchImages]);
+  }, [page, searchTerm, perPage]);
 
   useEffect(() => {
     if (!searchTerm) return;
-  }, [searchTerm, page]);
+
+    fetchImages();
+  }, [fetchImages, searchTerm, page]);
 
   const handleSearchSubmit = newSearchTerm => {
     setSearchTerm(newSearchTerm);
