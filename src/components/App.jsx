@@ -45,6 +45,10 @@ const App = () => {
     fetchImages();
   }, [fetchImages]);
 
+  useEffect(() => {
+    if (!searchTerm) return;
+  }, [searchTerm, page]);
+
   const handleSearchSubmit = newSearchTerm => {
     setSearchTerm(newSearchTerm);
     setImages([]);
