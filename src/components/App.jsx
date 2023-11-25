@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SearchBar from './SearchBar/SearchBar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
@@ -14,11 +14,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  useEffect(() => {
-    fetchImages();
-  }, [page, searchTerm]);
-
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -43,7 +39,11 @@ const App = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, searchTerm, apiKey, perPage]);
+
+  useEffect(() => {
+    fetchImages();
+  }, [fetchImages]);
 
   const handleSearchSubmit = newSearchTerm => {
     setSearchTerm(newSearchTerm);
