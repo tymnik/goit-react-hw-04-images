@@ -1,44 +1,40 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import styles from './Modal.module.css';
 
-class Modal extends Component {
-  componentDidMount() {
-    document.addEventListener('keydown', this.handleKeyDown);
-    document.addEventListener('click', this.handleClickOutside);
-  }
+const Modal = ({ imageUrl, altText, onClose }) => {
+  useEffect(() => {
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
 
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeyDown);
-    document.removeEventListener('click', this.handleClickOutside);
-  }
+    const handleClickOutside = event => {
+      const modal = document.querySelector(`.${styles.modal}`);
+      if (
+        event.target.classList.contains(styles.overlay) ||
+        (modal && modal.contains(event.target))
+      ) {
+        onClose();
+      }
+    };
 
-  handleKeyDown = event => {
-    if (event.key === 'Escape') {
-      this.props.onClose();
-    }
-  };
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('click', handleClickOutside);
 
-  handleClickOutside = event => {
-    const modal = document.querySelector(`.${styles.modal}`);
-    if (
-      event.target.classList.contains(styles.overlay) ||
-      (modal && modal.contains(event.target))
-    ) {
-      this.props.onClose();
-    }
-  };
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [onClose]);
 
-  render() {
-    const { imageUrl, altText } = this.props;
-
-    return (
-      <div className={styles.overlay}>
-        <div className={styles.modal}>
-          <img src={imageUrl} alt={altText} />
-        </div>
+  return (
+    <div className={styles.overlay}>
+      <div className={styles.modal}>
+        <img src={imageUrl} alt={altText} />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default Modal;

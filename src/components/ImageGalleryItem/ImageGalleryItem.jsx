@@ -1,61 +1,54 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../Modal/Modal';
 import styles from './ImageGalleryItem.module.css';
 
-class ImageGalleryItem extends Component {
-  state = {
-    isModalOpen: false,
+const ImageGalleryItem = ({ src, alt }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
   };
 
-  openModal = () => {
-    this.setState({ isModalOpen: true });
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
-  closeModal = () => {
-    this.setState({ isModalOpen: false });
-  };
+  useEffect(() => {
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    };
 
-  componentDidMount() {
-    document.addEventListener('keydown', this.handleKeyDown);
-    document.addEventListener('click', this.handleClickOutside);
-  }
+    const handleClickOutside = event => {
+      const modal = document.querySelector(`.${styles.modal}`);
+      if (
+        event.target.classList.contains(styles.overlay) ||
+        (modal && modal.contains(event.target))
+      ) {
+        closeModal();
+      }
+    };
 
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeyDown);
-    document.removeEventListener('click', this.handleClickOutside);
-  }
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('click', handleClickOutside);
 
-  handleKeyDown = event => {
-    if (event.key === 'Escape') {
-      this.closeModal();
-    }
-  };
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
-  handleClickOutside = event => {
-    const modal = document.querySelector(`.${styles.modal}`);
-    if (
-      event.target.classList.contains(styles.overlay) ||
-      (modal && modal.contains(event.target))
-    ) {
-      this.closeModal();
-    }
-  };
-
-  render() {
-    const { src, alt } = this.props;
-    const { isModalOpen } = this.state;
-
-    return (
-      <>
-        <li className={styles.galleryItem} onClick={this.openModal}>
-          <img className={styles.imageGalleryItem} src={src} alt={alt} />
-        </li>
-        {isModalOpen && (
-          <Modal imageUrl={src} altText={alt} onClose={this.closeModal} />
-        )}
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <li className={styles.galleryItem} onClick={openModal}>
+        <img className={styles.imageGalleryItem} src={src} alt={alt} />
+      </li>
+      {isModalOpen && (
+        <Modal imageUrl={src} altText={alt} onClose={closeModal} />
+      )}
+    </>
+  );
+};
 
 export default ImageGalleryItem;

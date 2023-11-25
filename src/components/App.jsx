@@ -1,40 +1,26 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import SearchBar from './SearchBar/SearchBar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import Loader from './Loader/Loader';
 import Modal from './Modal/Modal';
 
-class App extends Component {
-  state = {
-    apiKey: '39819981-fb7a960ba48529567676f3c81',
-    perPage: 12,
-    images: [],
-    searchTerm: '',
-    page: 1,
-    isLoading: false,
-    selectedImage: null,
-  };
+const App = () => {
+  const [apiKey] = useState('39819981-fb7a960ba48529567676f3c81');
+  const [perPage] = useState(12);
+  const [images, setImages] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  componentDidMount() {
-    this.fetchImages();
-  }
+  useEffect(() => {
+    fetchImages();
+  }, [page, searchTerm]);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { searchTerm } = this.state;
-
-    if (prevState.searchTerm !== searchTerm) {
-      this.setState({ images: [], page: 1 }, () => {
-        this.fetchImages();
-      });
-    }
-  }
-
-  fetchImages = async () => {
-    const { apiKey, perPage, searchTerm, page } = this.state;
-
+  const fetchImages = async () => {
     try {
-      this.setState({ isLoading: true });
+      setIsLoading(true);
 
       const response = await fetch(
         `https://pixabay.com/api/?q=${searchTerm}&page=${page}&key=${apiKey}&image_type=photo&orientation=horizontal&per_page=${perPage}`
@@ -51,58 +37,49 @@ class App extends Component {
         largeImageURL: hit.largeImageURL,
       }));
 
-      this.setState(prevState => ({
-        images: [...prevState.images, ...newImages],
-      }));
+      setImages(prevImages => [...prevImages, ...newImages]);
     } catch (error) {
       console.error(error);
     } finally {
-      this.setState({ isLoading: false });
+      setIsLoading(false);
     }
   };
 
-  handleSearchSubmit = newSearchTerm => {
-    this.setState({ searchTerm: newSearchTerm, images: [], page: 1 });
+  const handleSearchSubmit = newSearchTerm => {
+    setSearchTerm(newSearchTerm);
+    setImages([]);
+    setPage(1);
   };
 
-  loadMoreImages = () => {
-    this.setState(
-      prevState => ({ page: prevState.page + 1 }),
-      () => {
-        this.fetchImages();
-      }
-    );
+  const loadMoreImages = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  openModal = image => {
-    this.setState({ selectedImage: image });
+  const openModal = image => {
+    setSelectedImage(image);
   };
 
-  closeModal = () => {
-    this.setState({ selectedImage: null });
+  const closeModal = () => {
+    setSelectedImage(null);
   };
 
-  render() {
-    const { images, isLoading, selectedImage } = this.state;
-
-    return (
-      <div>
-        <SearchBar onSubmit={this.handleSearchSubmit} />
-        <ImageGallery images={images} openModal={this.openModal} />
-        {images.length > 0 && images.length % 12 === 0 && (
-          <Button onClick={this.loadMoreImages} loadMore={true} />
-        )}
-        {isLoading && <Loader />}
-        {selectedImage && (
-          <Modal
-            imageUrl={selectedImage.largeImageURL}
-            altText={selectedImage.id}
-            onClose={this.closeModal}
-          />
-        )}
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <SearchBar onSubmit={handleSearchSubmit} />
+      <ImageGallery images={images} openModal={openModal} />
+      {images.length > 0 && images.length % 12 === 0 && (
+        <Button onClick={loadMoreImages} loadMore={true} />
+      )}
+      {isLoading && <Loader />}
+      {selectedImage && (
+        <Modal
+          imageUrl={selectedImage.largeImageURL}
+          altText={selectedImage.id}
+          onClose={closeModal}
+        />
+      )}
+    </div>
+  );
+};
 
 export default App;
